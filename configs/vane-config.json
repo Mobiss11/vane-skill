@@ -4,7 +4,8 @@
   "preferences": {
     "defaultChatModel": {
       "providerId": "deepseek",
-      "key": "deepseek-v4-pro"
+      "key": "deepseek-chat"
+    }
     }
   },
   "personalization": {},
@@ -27,8 +28,7 @@
       "name": "DeepSeek V4 Pro",
       "type": "openai",
       "chatModels": [
-        {"name": "DeepSeek V4 Pro", "key": "deepseek-v4-pro"},
-        {"name": "DeepSeek Chat", "key": "deepseek-chat"}
+        {"name": "DeepSeek V4 Flash (non-thinking)", "key": "deepseek-chat"}
       ],
       "embeddingModels": [],
       "config": {

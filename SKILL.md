@@ -95,14 +95,36 @@ DeepSeek V4 Pro не поддерживает `response_format: json_schema` (т
 bash scripts/patch_vane.sh /tmp/Vane
 ```
 
-Что делает патч:
-- Меняет `chat.completions.parse()` → `chat.completions.create()`
-- Меняет `response_format: zodResponseFormat(...)` → `response_format: { type: "json_object" }`
-- Инжектит `"Respond with valid JSON."` в последнее сообщение пользователя
+**Что делает патч и почему он ОБЯЗАТЕЛЕН:**
 
-Почему это нужно: OpenAI SDK `parse()` генерирует `json_schema` формат, а DeepSeek поддерживает только `json_object`. Патч делает вызов совместимым.
+Vane использует OpenAI SDK метод `chat.completions.parse()` который отправляет `response_format: { type: "json_schema", ... }`. DeepSeek V4 **не поддерживает** `json_schema` — только `json_object`. Без патча каждый поисковый запрос падает с ошибкой:
 
-### Шаг 4 — Настрой DeepSeek V4 Pro
+```
+This response_format type is unavailable now
+invalid_request_error
+```
+
+Патч исправляет ровно 2 строки в одном файле (`src/lib/models/providers/openai/openaiLLM.ts`):
+
+| Было | Стало | Зачем |
+|---|---|---|
+| `chat.completions.parse({` | `chat.completions.create({` | Убираем structured output SDK |
+| `response_format: zodResponseFormat(...)` | `response_format: { type: "json_object" }` | Меняем `json_schema` на поддерживаемый `json_object` |
+
+Дополнительно патч инжектит `"Respond with valid JSON."` в промпт — это требование DeepSeek: слово `json` должно быть в сообщении пользователя для активации JSON-режима.
+
+**Важно:** это ЕДИНСТВЕННЫЙ патч. Больше ничего в Vane менять не нужно. Модель `deepseek-chat` уже работает без thinking mode (не требует патча `extra_body`).
+
+**Как проверить что патч применился:**
+
+```bash
+grep 'response_format.*json_object' /tmp/Vane/src/lib/models/providers/openai/openaiLLM.ts
+# Должен показать: response_format: { type: "json_object" },
+```
+
+Если патч не применился — скрипт `patch_vane.sh` скажет об этом. После патча **обязательно пересобрать Vane**: `npm run build`.
+
+### Шаг 4 — Настрой DeepSeek
 
 Скопируй конфиг с DeepSeek в Vane:
 
@@ -110,14 +132,20 @@ bash scripts/patch_vane.sh /tmp/Vane
 cp configs/vane-config.json /tmp/Vane/data/config.json
 ```
 
-В конфиге уже прописан DeepSeek V4 Pro как OpenAI-провайдер с базовым URL `https://api.deepseek.com/v1`. Ключ нужно вставить свой.
+**Модель по умолчанию:** `deepseek-chat` (это DeepSeek V4 Flash без thinking mode). 
+
+Почему именно `deepseek-chat`, а не `deepseek-v4-pro`:
+- `deepseek-chat` = DeepSeek V4 Flash с thinking mode **выключенным** — работает без патчей
+- `deepseek-v4-pro` = DeepSeek V4 Pro с thinking mode **всегда включённым** — требует доп. патча `extra_body`
+- Thinking mode не нужен для поиска — он добавляет 30-50% лишних токенов и требует пробрасывать `reasoning_content` между запросами (Vane не умеет)
+- По оф. документации: `deepseek-chat` и `deepseek-reasoner` — это алиасы V4 Flash (non-thinking / thinking), **не** старый V3
 
 Либо через веб-интерфейс (http://localhost:3000 → Settings):
 1. Добавь провайдер: **OpenAI**
-2. Name: `DeepSeek V4 Pro`
+2. Name: `DeepSeek`
 3. API Key: `sk-...` (твой ключ)
 4. Base URL: `https://api.deepseek.com/v1`
-5. Models: `deepseek-v4-pro`
+5. Models: `deepseek-chat`
 
 ### Шаг 5 — Запусти Vane
 
@@ -221,7 +249,14 @@ curl -s 'http://localhost:3000/api/search' -X POST -H 'Content-Type: application
 Добавь embedding-модели в Transformers провайдер в конфиге Vane (`data/config.json`).
 
 ### "This response_format type is unavailable"
-Патч из Шага 3 не применился. Проверь `src/lib/models/providers/openai/openaiLLM.ts` — должно быть `response_format: { type: "json_object" }` а не `zodResponseFormat(...)`.
+Патч из Шага 3 не применился. Это **единственный обязательный патч**. Проверь:
+```bash
+grep 'json_object' /tmp/Vane/src/lib/models/providers/openai/openaiLLM.ts
+```
+Если не показывает `response_format: { type: "json_object" }` — запусти `bash scripts/patch_vane.sh /tmp/Vane` и пересобери: `npm run build`.
+
+### "The reasoning_content must be passed back"
+Используется модель с thinking mode. Переключись на `deepseek-chat` (V4 Flash без thinking) в конфиге Vane или через веб-интерфейс Settings.
 
 ### "Invalid provider type"
 В `config.json` тип провайдера должен быть `openai`, не `customOpenAI`.
