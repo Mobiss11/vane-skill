@@ -1,11 +1,14 @@
 {
-  "mcpServers": {
+  "mcp": {
     "vane": {
-      "command": "uv",
-      "args": ["run", "--directory", "/path/to/vane-mcp-server", "vane-mcp"],
-      "env": {
+      "type": "local",
+      "command": ["uv", "run", "--directory", "/path/to/vane-mcp-server", "vane-mcp"],
+      "environment": {
+        "PATH": "/opt/homebrew/bin:$HOME/.local/bin:/usr/bin:/bin",
         "VANE_BASE_URL": "http://localhost:3000"
-      }
+      },
+      "enabled": true,
+      "timeout": 120000
     }
   }
 }

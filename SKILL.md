@@ -160,17 +160,20 @@ MCP-сервер даёт 4 инструмента: `web_search`, `balanced_sear
 }
 ```
 
-**OpenCode** — отредактируй `~/Library/Application Support/ai.opencode.desktop/opencode.settings`:
+**OpenCode** — добавь в проектном `opencode.json` (ключ `mcp`, не `mcpServers`):
 
 ```json
 {
-  "mcpServers": {
+  "mcp": {
     "vane": {
-      "command": "uv",
-      "args": ["run", "--directory", "/tmp/vane-mcp-server", "vane-mcp"],
-      "env": {
+      "type": "local",
+      "command": ["uv", "run", "--directory", "/tmp/vane-mcp-server", "vane-mcp"],
+      "environment": {
+        "PATH": "/opt/homebrew/bin:/Users/.../.local/bin:/usr/bin:/bin",
         "VANE_BASE_URL": "http://localhost:3000"
-      }
+      },
+      "enabled": true,
+      "timeout": 120000
     }
   }
 }
