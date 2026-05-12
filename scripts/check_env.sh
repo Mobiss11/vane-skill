@@ -11,8 +11,15 @@ echo "  Vane Stack — проверка окружения"
 echo "========================================"
 echo ""
 
+# OS Detection
+OS="$(uname -s)"
 echo "🔧 Система:"
-echo "  OS: $(uname -s) $(uname -m)"
+echo "  OS: $OS $(uname -m)"
+case "$OS" in
+    Darwin)  echo "  Тип: macOS";;
+    Linux)   echo "  Тип: Linux";;
+    MINGW*|MSYS*|CYGWIN*) echo "  Тип: Windows";;
+esac
 
 echo ""
 echo "📦 Обязательные компоненты:"
@@ -24,7 +31,6 @@ echo ""
 echo "🐍 Python / MCP:"
 check python3 "Python 3.11+ (для MCP сервера)" && echo "     версия: $(python3 --version 2>&1)"
 check uv "uv (менеджер пакетов Python)"
-check pip3 "pip3"
 
 echo ""
 echo "🌐 Порты (должны быть свободны):"
@@ -38,14 +44,41 @@ done
 
 echo ""
 echo "📊 Ресурсы:"
-if [[ "$(uname)" == "Darwin" ]]; then
+if [[ "$OS" == "Darwin" ]]; then
     RAM=$(sysctl -n hw.memsize 2>/dev/null | awk '{printf "%.1f GB", $1/1024/1024/1024}')
+    echo "  RAM: $RAM"
+    DISK=$(df -h / | tail -1 | awk '{print $4}')
+    echo "  Свободно на диске: $DISK"
+elif [[ "$OS" == "Linux" ]]; then
+    RAM=$(free -h | awk '/Mem:/{print $2}')
     echo "  RAM: $RAM"
     DISK=$(df -h / | tail -1 | awk '{print $4}')
     echo "  Свободно на диске: $DISK"
 fi
 
-echo ""
-echo "========================================"
-echo "  Готово."
-echo "========================================"
+# Docker install guide
+if ! command -v docker &>/dev/null; then
+    echo ""
+    echo "🛠️  Docker не найден. Установка:"
+    case "$OS" in
+        Darwin)
+            echo "  brew install --cask docker"
+            echo "  или скачать: https://docs.docker.com/desktop/setup/mac-install/"
+            ;;
+        Linux)
+            if command -v apt &>/dev/null; then
+                echo "  curl -fsSL https://get.docker.com | sh"
+                echo "  sudo usermod -aG docker \$USER"
+            elif command -v dnf &>/dev/null; then
+                echo "  sudo dnf install docker docker-compose"
+                echo "  sudo systemctl enable --now docker"
+            fi
+            ;;
+        MINGW*|MSYS*|CYGWIN*)
+            echo "  winget install Docker.DockerDesktop"
+            echo "  или: https://docs.docker.com/desktop/setup/install/windows-install/"
+            ;;
+    esac
+    echo ""
+    echo "  ⚠️  Альтернатива без Docker: bash setup.sh --no-docker"
+fi

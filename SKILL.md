@@ -55,11 +55,58 @@ bash setup.sh
 bash scripts/check_env.sh
 ```
 
-Скрипт проверит и скажет чего не хватает. Нужно:
-- **Docker** (для SearxNG) — если нет: `brew install docker` (Mac) или [docker.com](https://docker.com)
+Скрипт автоматически определит ОС и скажет чего не хватает.
+
+**Нужно:**
+- **Docker** (для SearxNG) — если нет, скрипт подскажет как поставить
 - **Node.js 20+** — если нет: `brew install node` (Mac)
 - **Python 3.11+** — обычно уже есть
 - **uv** (менеджер пакетов) — `curl -LsSf https://astral.sh/uv/install.sh | sh`
+
+#### Если Docker не установлен
+
+Скилл автоматически определяет ОС и даёт правильную команду:
+
+**macOS:**
+```bash
+brew install --cask docker
+# Или скачать с https://docker.com
+```
+
+**Ubuntu/Debian:**
+```bash
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+# Выйти и зайти заново
+```
+
+**Fedora:**
+```bash
+sudo dnf install docker docker-compose
+sudo systemctl enable --now docker
+```
+
+**Windows:**
+```bash
+winget install Docker.DockerDesktop
+# Или https://docs.docker.com/desktop/setup/install/windows-install/
+```
+
+**Если Docker совсем нельзя поставить** — SearxNG можно заменить публичным инстансом:
+```bash
+export SEARXNG_API_URL='https://searx.be'
+```
+Но учти: публичные инстансы медленнее и не приватны.
+
+#### Альтернатива без Docker
+
+Если Docker не вариант — можно использовать публичный SearxNG инстанс. Скилл подставит его автоматически если Docker не найден:
+
+```bash
+bash setup.sh --no-docker
+```
+
+Скрипт сам проверит доступность публичных SearxNG инстансов и выберет рабочий.
 
 ### Шаг 1 — Подними SearxNG
 
