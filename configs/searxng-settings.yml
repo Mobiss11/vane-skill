@@ -1,0 +1,15 @@
+use_default_settings: true
+search:
+  formats:
+    - html
+    - json
+server:
+  secret_key: "vane-searxng-secret-change-me-in-production-1234567890"
+  limiter: false
+  image_proxy: true
+  port: 8080
+  bind_address: "0.0.0.0"
+ui:
+  static_use_hash: true
+redis:
+  url: false

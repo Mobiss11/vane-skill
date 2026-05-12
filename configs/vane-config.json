@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "setupComplete": true,
+  "preferences": {
+    "defaultChatModel": {
+      "providerId": "deepseek",
+      "key": "deepseek-v4-pro"
+    }
+  },
+  "personalization": {},
+  "modelProviders": [
+    {
+      "id": "7f6e41e9-10c0-422c-8776-088fff2a9f48",
+      "name": "Transformers",
+      "type": "transformers",
+      "chatModels": [],
+      "embeddingModels": [
+        {"name": "all-MiniLM-L6-v2", "key": "Xenova/all-MiniLM-L6-v2"},
+        {"name": "mxbai-embed-large-v1", "key": "mixedbread-ai/mxbai-embed-large-v1"},
+        {"name": "nomic-embed-text-v1", "key": "Xenova/nomic-embed-text-v1"}
+      ],
+      "config": {},
+      "hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "id": "deepseek",
+      "name": "DeepSeek V4 Pro",
+      "type": "openai",
+      "chatModels": [
+        {"name": "DeepSeek V4 Pro", "key": "deepseek-v4-pro"},
+        {"name": "DeepSeek Chat", "key": "deepseek-chat"}
+      ],
+      "embeddingModels": [],
+      "config": {
+        "apiKey": "sk-YOUR-DEEPSEEK-API-KEY-HERE",
+        "baseURL": "https://api.deepseek.com/v1"
+      },
+      "hash": "deepseek-config-hash-placeholder"
+    }
+  ],
+  "search": {
+    "searxngURL": "http://localhost:8080"
+  }
+}
